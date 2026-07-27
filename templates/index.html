@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>English to French Translator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+
+        <header>
+            <h1>English &rarr; French Translator</h1>
+            <p class="subtitle">
+                A small web app that uses an LSTM sequence-to-sequence model
+                to translate short English sentences into French.
+            </p>
+        </header>
+
+        <form method="POST" action="/">
+            <label for="english_text">Your English sentence</label>
+            <textarea
+                id="english_text"
+                name="english_text"
+                rows="3"
+                placeholder="e.g. she likes bananas and apples"
+                required>{{ english_input }}</textarea>
+
+            <button type="submit">Translate</button>
+        </form>
+
+        {% if french_output %}
+        <div class="result">
+            <p class="result-label">French translation</p>
+            <p class="result-text">{{ french_output }}</p>
+        </div>
+        {% endif %}
+
+        <footer>
+            <p>Built by Fatima Al Hosani &middot; ZAKA AIC Machine Learning Specialization</p>
+        </footer>
+
+    </div>
+</body>
+</html>
