@@ -1,6 +1,6 @@
 # main flask app for the english to french translator
-# loads the trained LSTM model once on startup and translates
-# whatever english sentence the user types on the webpage
+# the trained keras model is too big for github (>25mb) so i host it on
+# hugging face hub and download it once when the container starts
 
 from flask import Flask, render_template, request
 import tensorflow as tf
@@ -8,34 +8,45 @@ from tensorflow.keras.preprocessing.sequence import pad_sequences
 import numpy as np
 import pickle
 import os
+from huggingface_hub import hf_hub_download
 
 # create the flask app
 app = Flask(__name__)
 
-# path to the model folder
+# path to the folder that holds the small files (tokenizers + config)
 MODEL_DIR = "model"
 
-# load the saved model
-# this happens once when the app starts so predictions are fast later
-print("Loading model...")
-model = tf.keras.models.load_model(os.path.join(MODEL_DIR, "model.keras"))
+# hugging face repo details where the trained model file lives
+HF_REPO_ID = "Fatima173/english-french-translator-model"
+HF_MODEL_FILENAME = "model.keras"
 
-# load the tokenizers
+
+# download the model file from hugging face hub the first time the app starts
+# after the first run it stays cached on disk so restarts are fast
+print("Downloading model from Hugging Face Hub...")
+model_path = hf_hub_download(repo_id=HF_REPO_ID, filename=HF_MODEL_FILENAME)
+print(f"Model file ready at {model_path}")
+
+# now load the keras model into memory
+model = tf.keras.models.load_model(model_path)
+print("Keras model loaded.")
+
+# load the tokenizers from the local model folder (small enough to keep in github)
 with open(os.path.join(MODEL_DIR, "en_tokenizer.pkl"), "rb") as f:
     en_tokenizer = pickle.load(f)
 
 with open(os.path.join(MODEL_DIR, "fr_tokenizer.pkl"), "rb") as f:
     fr_tokenizer = pickle.load(f)
 
-# load the max lengths we saved from training
+# load the max lengths i saved during training
 with open(os.path.join(MODEL_DIR, "config.pkl"), "rb") as f:
     config = pickle.load(f)
 
 max_en_len = config["max_en_len"]
-print("Model and tokenizers loaded.")
+print("Tokenizers and config loaded.")
 
 
-# helper function - same idea as the one i used in the colab notebook
+# helper function - same idea as the one from my colab notebook
 def translate(sentence):
     sentence = sentence.lower().strip()
     if not sentence:
@@ -58,7 +69,7 @@ def translate(sentence):
     return " ".join(words)
 
 
-# main page - shows the form
+# main page - shows the form and any translation the user just submitted
 @app.route("/", methods=["GET", "POST"])
 def home():
     english_input = ""
@@ -77,7 +88,7 @@ def home():
 
 
 # start the flask server
-# host=0.0.0.0 makes it work inside docker
+# host=0.0.0.0 is needed so the app is reachable from outside the docker container
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 7860))
     app.run(host="0.0.0.0", port=port, debug=False)
