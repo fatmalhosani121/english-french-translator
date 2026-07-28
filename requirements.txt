@@ -1,5 +1,6 @@
 Flask==3.0.0
-tensorflow-cpu==2.19.0
-numpy>=1.26.4,<2.0
+tensorflow-cpu==2.15.0
+h5py==3.10.0
+numpy==1.26.4
 gunicorn==21.2.0
 huggingface_hub==0.24.0
