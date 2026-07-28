@@ -67,3 +67,8 @@ The model was trained on a relatively small dataset, so some translations may no
 ## Author
 
 Fatima Al Hosani
+
+
+## Screenshot
+
+![Application Screenshot](screenshot.png)
